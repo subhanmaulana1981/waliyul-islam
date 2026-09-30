@@ -26,7 +26,7 @@ if (getenv('DATABASE_URL') || getenv('MYSQL_URL')) {
     define( 'DB_PASSWORD', $db_url['pass'] ?? '' );
     define( 'DB_HOST', ($db_url['host'] ?? 'localhost') . (isset($db_url['port']) ? ':' . $db_url['port'] : '') );
 } else {
-    define( 'DB_NAME', getenv('MYSQLDATABASE') ?: (getenv('MYSQL_DATABASE') ?: 'waliyul_islam') );
+    define( 'DB_NAME', getenv('MYSQLDATABASE') ?: (getenv('MYSQL_DATABASE') ?: 'db_waliyul_islam') );
     define( 'DB_USER', getenv('MYSQLUSER') ?: (getenv('MYSQL_USER') ?: 'root') );
     define( 'DB_PASSWORD', getenv('MYSQLPASSWORD') ?: (getenv('MYSQL_PASSWORD') ?: '') );
     define( 'DB_HOST', (getenv('MYSQLHOST') || getenv('MYSQL_HOST')) 
