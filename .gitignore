@@ -1,6 +1,3 @@
-# WordPress core files (if you only want to version your custom work, or exclude configs)
-wp-config.php
-
 # Uploads & Caches
 wp-content/uploads/
 wp-content/cache/
