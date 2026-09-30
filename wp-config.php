@@ -19,21 +19,37 @@
  */
 
 // ** Database settings - Support Railway & Local Laragon ** //
+$wp_db_name = getenv('WORDPRESS_DB_NAME') ?: getenv('DB_NAME');
+$wp_db_user = getenv('WORDPRESS_DB_USER') ?: getenv('DB_USER');
+$wp_db_pass = getenv('WORDPRESS_DB_PASSWORD') !== false ? getenv('WORDPRESS_DB_PASSWORD') : (getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : null);
+$wp_db_host = getenv('WORDPRESS_DB_HOST') ?: getenv('DB_HOST');
+
 if (getenv('DATABASE_URL') || getenv('MYSQL_URL')) {
-    $db_url = parse_url(getenv('DATABASE_URL') ?: getenv('MYSQL_URL'));
-    define( 'DB_NAME', ltrim($db_url['path'] ?? '', '/') );
-    define( 'DB_USER', $db_url['user'] ?? 'root' );
-    define( 'DB_PASSWORD', $db_url['pass'] ?? '' );
-    define( 'DB_HOST', ($db_url['host'] ?? 'localhost') . (isset($db_url['port']) ? ':' . $db_url['port'] : '') );
-} else {
-    define( 'DB_NAME', getenv('MYSQLDATABASE') ?: (getenv('MYSQL_DATABASE') ?: 'db_waliyul_islam') );
-    define( 'DB_USER', getenv('MYSQLUSER') ?: (getenv('MYSQL_USER') ?: 'root') );
-    define( 'DB_PASSWORD', getenv('MYSQLPASSWORD') ?: (getenv('MYSQL_PASSWORD') ?: '') );
-    define( 'DB_HOST', (getenv('MYSQLHOST') || getenv('MYSQL_HOST')) 
-        ? (getenv('MYSQLHOST') ?: getenv('MYSQL_HOST')) . ':' . (getenv('MYSQLPORT') ?: getenv('MYSQL_PORT') ?: '3306')
-        : 'localhost' 
-    );
+    $raw_url = getenv('DATABASE_URL') ?: getenv('MYSQL_URL');
+    $db_url = parse_url($raw_url);
+    if ($db_url) {
+        $wp_db_name = $wp_db_name ?: ltrim($db_url['path'] ?? '', '/');
+        $wp_db_user = $wp_db_user ?: (isset($db_url['user']) ? urldecode($db_url['user']) : null);
+        $wp_db_pass = $wp_db_pass !== null ? $wp_db_pass : (isset($db_url['pass']) ? urldecode($db_url['pass']) : null);
+        $wp_db_host = $wp_db_host ?: (($db_url['host'] ?? '127.0.0.1') . (isset($db_url['port']) ? ':' . $db_url['port'] : ''));
+    }
 }
+
+// Fallback to individual environment variables (Railway / Cloud standard) or Laragon defaults
+$wp_db_name = $wp_db_name ?: (getenv('MYSQLDATABASE') ?: (getenv('MYSQL_DATABASE') ?: 'db_waliyul_islam'));
+$wp_db_user = $wp_db_user ?: (getenv('MYSQLUSER') ?: (getenv('MYSQL_USER') ?: 'root'));
+$wp_db_pass = $wp_db_pass !== null ? $wp_db_pass : (getenv('MYSQLPASSWORD') ?: (getenv('MYSQL_PASSWORD') ?: ''));
+
+if (!$wp_db_host) {
+    $env_host = getenv('MYSQLHOST') ?: getenv('MYSQL_HOST');
+    $env_port = getenv('MYSQLPORT') ?: (getenv('MYSQL_PORT') ?: '3306');
+    $wp_db_host = $env_host ? ($env_host . ':' . $env_port) : '127.0.0.1';
+}
+
+define( 'DB_NAME', $wp_db_name );
+define( 'DB_USER', $wp_db_user );
+define( 'DB_PASSWORD', $wp_db_pass );
+define( 'DB_HOST', $wp_db_host );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8mb4' );
