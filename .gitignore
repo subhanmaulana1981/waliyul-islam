@@ -1,0 +1,21 @@
+# WordPress core files (if you only want to version your custom work, or exclude configs)
+wp-config.php
+
+# Uploads & Caches
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/blogs.dir/
+
+# Backups and Logs
+*.log
+*.sql
+*.sql.gz
+sitemap.xml
+sitemap.xml.gz
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
