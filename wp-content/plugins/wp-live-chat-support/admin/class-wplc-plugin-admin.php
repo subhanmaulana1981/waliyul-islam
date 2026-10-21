@@ -96,7 +96,8 @@ class wplc_Plugin_Admin
     wp_localize_script($this->plugin_name . '-admin-main', 'ajax_object', array( 
       'ajax_url' => admin_url('admin-ajax.php'),
       'msg_reset_config' => htmlentities(__('Do you really want to reset 3CX Live Chat Configuration?','wp-live-chat-support')),
-      'activated' => intval(get_option('wplc_activated'))
+      'activated' => intval(get_option('wplc_activated')),
+      'check_update_nonce' => wp_create_nonce('wplc_check_update')
     ));
   }
 
@@ -120,6 +121,10 @@ class wplc_Plugin_Admin
   }  
 
   public function check_update() {
+    check_ajax_referer('wplc_check_update', 'nonce');
+    if (!current_user_can('manage_options')) {
+      wp_send_json_error(null, 403);
+    }
     $activated=get_option('wplc_activated');
     if (isset($_REQUEST['value']) && intval($_REQUEST['value'])==1) {
       if ($activated==0) {

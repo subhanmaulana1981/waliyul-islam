@@ -479,6 +479,31 @@ class ResponsiveAttributeCSS {
 		$defs      = $attr_definitions[ $block_name ];
 
 		/*
+		 * A container's Width only applies at the default alignment. Wide and
+		 * full containers take their width from the alignment, and the editor
+		 * already ignores `width` for them (getContainerSizeStyles() in
+		 * render.js). Emitting it here too kept a width set before the
+		 * alignment was changed: a 500px container switched to Full rendered
+		 * 500px wide on the front end while the canvas showed it full width.
+		 */
+		if ( 'spectra/container' === $block_name && is_array( $defs ) && in_array( $block_attrs['align'] ?? '', array( 'wide', 'full' ), true ) ) {
+			unset( $defs['width'] );
+		}
+
+		/*
+		 * A full container is never clamped by its Max Width either: the editor
+		 * forces `max-width: none !important` on it (class-global-styles-bridge.php)
+		 * and the front-end stylesheet sets `max-width: none` (common.scss), but
+		 * this per-block rule outranked the stylesheet. The theme's full-width
+		 * breakout margins then left an 800px box pinned to the left edge while
+		 * the canvas showed it edge to edge. Wide containers keep their Max
+		 * Width, as the editor does.
+		 */
+		if ( 'spectra/container' === $block_name && is_array( $defs ) && 'full' === ( $block_attrs['align'] ?? '' ) ) {
+			unset( $defs['maxWidth'] );
+		}
+
+		/*
 		 * Turning text shadow OFF for one device has to emit an explicit reset.
 		 * The base layer is unqueried — it applies at every width — so a band
 		 * that simply generates nothing leaves the wider shadow showing, and
@@ -1728,9 +1753,14 @@ class ResponsiveAttributeCSS {
 			// surface to exist unconditionally; this branch needs the actual colour.
 			$has_non_responsive_color = ! empty( $attrs['backgroundColor'] ) || ! empty( $attrs['backgroundGradient'] );
 			if ( $has_non_responsive_color ) {
+				// No z-index on the colour scaffold. A negative z-index escaped the
+				// layer behind an ancestor's background (#629); `isolation: isolate`
+				// only masked that, at the cost of trapping child z-index (the #344
+				// regression). Direct children are `position: relative` and paint
+				// after `::before`, so they stay above it without either. See #1061.
 				$rules[] = array(
 					'selector'   => '::before',
-					'style_attr' => 'content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: -1; pointer-events: none; display: block; background: var(--spectra-background-gradient, var(--spectra-background-color)); opacity: var(--spectra-overlay-opacity, 1);',
+					'style_attr' => 'content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; display: block; background: var(--spectra-background-gradient, var(--spectra-background-color)); opacity: var(--spectra-overlay-opacity, 1);',
 				);
 			} elseif ( self::has_hover_background( $attrs ) ) {
 				$rules[] = array(
@@ -1740,7 +1770,7 @@ class ResponsiveAttributeCSS {
 
 				$rules[] = array(
 					'selector'   => '.spectra-background-color-hover:hover::before',
-					'style_attr' => 'content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: -1; pointer-events: none; display: block;',
+					'style_attr' => 'content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; display: block;',
 				);
 			}
 			return $rules;
@@ -1773,9 +1803,10 @@ class ResponsiveAttributeCSS {
 				// over blocks that are intentionally set to no background.
 				$has_overlay = ! empty( $attrs['backgroundColor'] ) || ! empty( $attrs['backgroundGradient'] );
 				if ( $has_overlay ) {
+					// No z-index — see the colour scaffold above and #1061.
 					$rules[] = array(
 						'selector'   => '::before',
-						'style_attr' => 'content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: -1; pointer-events: none; display: block; background: var(--spectra-background-gradient, var(--spectra-background-color)); opacity: var(--spectra-overlay-opacity, 1);',
+						'style_attr' => 'content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; display: block; background: var(--spectra-background-gradient, var(--spectra-background-color)); opacity: var(--spectra-overlay-opacity, 1);',
 					);
 				} else {
 					// Reset inherited vars so parent gradient/color doesn't leak in.
@@ -1787,7 +1818,7 @@ class ResponsiveAttributeCSS {
 				if ( self::has_hover_background( $attrs ) ) {
 					$rules[] = array(
 						'selector'   => '.spectra-background-color-hover:hover::before',
-						'style_attr' => 'content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: -1; pointer-events: none; display: block;',
+						'style_attr' => 'content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; display: block;',
 					);
 				}
 				return $rules;

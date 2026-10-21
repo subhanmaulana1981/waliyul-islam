@@ -44,7 +44,8 @@
 			url : ajax_object.ajax_url,
 			data : {
 				action : 'check_update',
-        value: val
+        value: val,
+        nonce: ajax_object.check_update_nonce
 			}
 		})
 		.done(
