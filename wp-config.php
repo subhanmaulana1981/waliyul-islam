@@ -119,6 +119,7 @@ $table_prefix = 'wp_';
  * @link https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/
  */
 define( 'WP_DEBUG', false );
+define( 'DISABLE_WP_CRON', true );
 
 /* Add any custom values between this line and the "stop editing" line. */
 
